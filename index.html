@@ -5,30 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Minha Semana - Exclusivo</title>
 
-  <!-- LÓGICA DE BLOQUEIO DE NAVEGADOR -->
+  <!-- LÓGICA DE SEGURANÇA AJUSTADA -->
   <script>
     (function () {
       // 1. CHAVE SECRETA DE ACESSO
       const CHAVE_SECRETA = "FABAPP_SECRETA_2026";
 
-      // 2. CAPTURA O PARÂMETRO NA URL
+      // 2. CAPTURA A CHAVE DA URL
       const urlParams = new URLSearchParams(window.location.search);
       const keyFornecida = urlParams.get('app_key');
 
-      // 3. DETECTA SE ESTÁ DENTRO DO APP OU PAINEL DA FABAPP
-      var ua = navigator.userAgent || navigator.vendor || window.opera;
-      var isAppEnvironment = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua) || 
-                             /wv/i.test(ua) || 
-                             /Android.*Version\/[0-9]\.[0-9]/i.test(ua) || 
-                             /Fabapp/i.test(ua) ||
-                             document.referrer.includes("fabapp") ||
-                             document.referrer.includes("fab.app");
+      // 3. DETECTA SE ESTÁ EM IFRAME / AMBIENTE EMBUTIDO
+      var inFrame = false;
+      try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
 
-      // VALIDAÇÃO: Se tiver a chave correta OU estiver no ambiente do App, libera.
-      // Se for um navegador comum sem a chave, bloqueia!
-      const liberado = (keyFornecida === CHAVE_SECRETA) || isAppEnvironment;
+      // 4. DETECTA REFERRER DA FABAPP
+      var isFabappReferrer = document.referrer.indexOf("fab.app") !== -1 || document.referrer.indexOf("fabapp") !== -1;
 
-      if (!liberado) {
+      // LIBERA SE TIVER A CHAVE CORRETA, SE ESTIVER EM IFRAME OU SE VIER DE REFERRER DA FABAPP
+      const estaLiberado = (keyFornecida === CHAVE_SECRETA) || inFrame || isFabappReferrer;
+
+      if (!estaLiberado) {
         document.addEventListener("DOMContentLoaded", function () {
           document.body.innerHTML = `
             <div style="
