@@ -1,55 +1,13 @@
-<!DOCTYPE html>
+tml>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Minha Semana - Exclusivo</title>
 
-  <!-- LÓGICA DE VALIDAÇÃO E LIMPEZA DE URL -->
   <script>
-    (function () {
-      const CHAVE_SECRETA = "FABAPP_SECRETA_2026";
-
-      // 1. Captura a chave na URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const keyFornecida = urlParams.get('app_key');
-
-      // 2. Valida se a chave fornecida é a correta
-      if (keyFornecida === CHAVE_SECRETA) {
-        // CHAVE CORRETA: Limpa o parâmetro da barra de endereço para que o botão "Abrir no Navegador" receba a URL sem a chave
-        if (window.history && window.history.replaceState) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      } else {
-        // CHAVE INCORRETA OU SEM CHAVE (Como ao clicar em "Abrir no Navegador"): BLOQUEIA!
-        document.addEventListener("DOMContentLoaded", function () {
-          document.body.innerHTML = `
-            <div style="
-              display: flex; 
-              flex-direction: column; 
-              align-items: center; 
-              justify-content: center; 
-              height: 100vh; 
-              background-color: #0d1410; 
-              color: #20e070; 
-              font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-              text-align: center; 
-              padding: 24px;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
-                <h1 style="font-size: 20px; margin-bottom: 8px; color: #ffffff;">Acesso Restrito ao App</h1>
-                <p style="color: #8fa394; font-size: 13px; line-height: 1.5; max-width: 280px;">
-                  Esta página só pode ser acessada dentro do aplicativo oficial.
-                </p>
-            </div>
-          `;
-        });
-      }
-    })();
-
-    // BLOQUEIA O BOTÃO DIREITO DO MOUSE
+    // Proteções básicas de código-fonte
     document.addEventListener('contextmenu', event => event.preventDefault());
-
-    // BLOQUEIA ATALHOS DE INSPEÇÃO (F12, CTRL+SHIFT+I, CTRL+U)
     document.onkeydown = function(e) {
       if (e.keyCode == 123 || 
          (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) ||
@@ -489,6 +447,3 @@
     }
 
     renderTasks();
-  </script>
-</body>
-</html>
