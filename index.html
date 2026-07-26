@@ -5,27 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Minha Semana - Exclusivo</title>
 
-  <!-- LÓGICA DE SEGURANÇA AJUSTADA -->
+  <!-- LÓGICA DE VALIDAÇÃO E LIMPEZA DE URL -->
   <script>
     (function () {
-      // 1. CHAVE SECRETA DE ACESSO
       const CHAVE_SECRETA = "FABAPP_SECRETA_2026";
 
-      // 2. CAPTURA A CHAVE DA URL
+      // 1. Captura a chave na URL
       const urlParams = new URLSearchParams(window.location.search);
       const keyFornecida = urlParams.get('app_key');
 
-      // 3. DETECTA SE ESTÁ EM IFRAME / AMBIENTE EMBUTIDO
-      var inFrame = false;
-      try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
-
-      // 4. DETECTA REFERRER DA FABAPP
-      var isFabappReferrer = document.referrer.indexOf("fab.app") !== -1 || document.referrer.indexOf("fabapp") !== -1;
-
-      // LIBERA SE TIVER A CHAVE CORRETA, SE ESTIVER EM IFRAME OU SE VIER DE REFERRER DA FABAPP
-      const estaLiberado = (keyFornecida === CHAVE_SECRETA) || inFrame || isFabappReferrer;
-
-      if (!estaLiberado) {
+      // 2. Valida se a chave fornecida é a correta
+      if (keyFornecida === CHAVE_SECRETA) {
+        // CHAVE CORRETA: Limpa o parâmetro da barra de endereço para que o botão "Abrir no Navegador" receba a URL sem a chave
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } else {
+        // CHAVE INCORRETA OU SEM CHAVE (Como ao clicar em "Abrir no Navegador"): BLOQUEIA!
         document.addEventListener("DOMContentLoaded", function () {
           document.body.innerHTML = `
             <div style="
