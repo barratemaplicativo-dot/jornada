@@ -5,25 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Minha Semana - Exclusivo</title>
 
-  <!-- TRAVA DE SEGURANÇA E BLOQUEIO DE NAVEGADOR -->
+  <!-- LÓGICA DE BLOQUEIO DE NAVEGADOR -->
   <script>
     (function () {
-      // 1. CONFIGURAÇÃO DA CHAVE SECRETA (Você pode alterar este valor se desejar)
+      // 1. CHAVE SECRETA DE ACESSO
       const CHAVE_SECRETA = "FABAPP_SECRETA_2026";
 
-      // 2. VERIFICAÇÃO DA CHAVE NA URL (?app_key=...)
+      // 2. CAPTURA O PARÂMETRO NA URL
       const urlParams = new URLSearchParams(window.location.search);
       const keyFornecida = urlParams.get('app_key');
 
-      // 3. DETECÇÃO DE NAVEGADOR / WEBVIEW
+      // 3. DETECTA SE ESTÁ DENTRO DO APP OU PAINEL DA FABAPP
       var ua = navigator.userAgent || navigator.vendor || window.opera;
-      var isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua) || 
-                      /wv/i.test(ua) || 
-                      /Android.*Version\/[0-9]\.[0-9]/i.test(ua) || 
-                      /Fabapp/i.test(ua);
+      var isAppEnvironment = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua) || 
+                             /wv/i.test(ua) || 
+                             /Android.*Version\/[0-9]\.[0-9]/i.test(ua) || 
+                             /Fabapp/i.test(ua) ||
+                             document.referrer.includes("fabapp") ||
+                             document.referrer.includes("fab.app");
 
-      // SE A CHAVE FOR INVÁLIDA OU SE FOR UM NAVEGADOR COMUM, BLOQUEIA
-      if (keyFornecida !== CHAVE_SECRETA || !isWebView) {
+      // VALIDAÇÃO: Se tiver a chave correta OU estiver no ambiente do App, libera.
+      // Se for um navegador comum sem a chave, bloqueia!
+      const liberado = (keyFornecida === CHAVE_SECRETA) || isAppEnvironment;
+
+      if (!liberado) {
         document.addEventListener("DOMContentLoaded", function () {
           document.body.innerHTML = `
             <div style="
@@ -68,7 +73,7 @@
       padding: 0;
       -webkit-tap-highlight-color: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      user-select: none; /* Evita seleção acidental de texto ao tocar */
+      user-select: none;
     }
 
     body {
@@ -104,7 +109,6 @@
       line-height: 1.4;
     }
 
-    /* Tags / Filtros */
     .tags-scroll {
       display: flex;
       gap: 8px;
@@ -135,7 +139,6 @@
       margin-bottom: 16px;
     }
 
-    /* Progresso Hoje */
     .progress-box {
       display: flex;
       align-items: center;
@@ -179,7 +182,6 @@
       margin-top: 2px;
     }
 
-    /* Dias da Semana Navegação */
     .days-nav {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -205,7 +207,6 @@
       font-weight: bold;
     }
 
-    /* Seção Tarefas */
     .section-title {
       font-size: 14px;
       color: #ffffff;
@@ -300,7 +301,6 @@
       color: #8fe8b2;
     }
 
-    /* Anotações */
     .input-label {
       font-size: 10px;
       color: #20e070;
