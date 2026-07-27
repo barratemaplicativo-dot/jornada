@@ -23,7 +23,7 @@
       min-height: 100vh;
     }
 
-    /* TELA DE BLOQUEIO DE NAVEGADOR (SEM SENHA) */
+    /* TELA DE BLOQUEIO DE NAVEGADOR */
     #lockScreen {
       position: fixed;
       top: 0;
@@ -32,7 +32,7 @@
       height: 100vh;
       background-color: #0d1410;
       z-index: 99999;
-      display: flex; /* Exibido por padrão */
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -79,7 +79,7 @@
       font-weight: 600;
     }
 
-    /* CONTEÚDO PRINCIPAL (ESCONDIDO ATÉ VALIDAR APP) */
+    /* CONTEÚDO PRINCIPAL */
     #appContent {
       display: none;
     }
@@ -129,7 +129,7 @@
 </head>
 <body>
 
-  <!-- TELA DE BLOQUEIO DE NAVEGADOR (SEM CAMPO DE SENHA) -->
+  <!-- TELA DE BLOQUEIO DE NAVEGADOR -->
   <div id="lockScreen">
     <div class="lock-card">
       <div class="lock-icon">🚫</div>
@@ -207,7 +207,7 @@
     }
 
     function checkAccess() {
-      // 1. Bloqueia imediatamente PC / Telas Grandes
+      // 1. Bloqueia Computador / Telas Grandes
       if (window.innerWidth > 600) {
         forceLock();
         return;
@@ -215,22 +215,23 @@
 
       const ua = navigator.userAgent || window.opera;
 
-      // 2. Identificação de Navegador Comum (Navegador Aberto por fora)
-      const isAndroidPureBrowser = /Chrome\/[0-9]/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua);
-      
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
-      const isIOSPureSafari = isIOS && /Safari/i.test(ua) && !/FBAN|FBAV|Instagram|wv/i.test(ua) && !('standalone' in window.navigator && window.navigator.standalone);
+      // 2. Identifica se está rodando em um navegador comum fora do app
+      const isStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
+      const isFabappContainer = /Fabapp|Appypie|AppBuilder|wv/i.test(ua);
 
-      // Se for navegador nativo (Chrome Android ou Safari iOS), Bloqueia sem dar opção de senha!
-      if (isAndroidPureBrowser || isIOSPureSafari) {
+      // Detecta Chrome/Safari puros (fora do app)
+      const isPureAndroidChrome = /Chrome/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua);
+      const isPureIosSafari = /Safari/i.test(ua) && !isFabappContainer && !isStandalone && !/FBAN|FBAV|Instagram/i.test(ua);
+
+      // Se for acionado por fora no navegador padrão, bloqueia
+      if ((isPureAndroidChrome || isPureIosSafari) && !isFabappContainer) {
         forceLock();
       } else {
-        // Se estiver dentro da WebView (no App), libera o conteúdo
+        // Se estiver dentro da Fabapp, libera
         showContent();
       }
     }
 
-    // Executa a verificação assim que o DOM carrega
     window.addEventListener('DOMContentLoaded', checkAccess);
 
     // LÓGICA DAS TAREFAS
