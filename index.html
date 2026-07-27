@@ -224,22 +224,32 @@
   <script>
     const SENHA_CORRETA = "2026"; 
 
-    // VERIFICA SE O LINK TEM O PARÂMETRO DA FABAPP (?app=true)
-    function isInsideApp() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('app') === 'true' || urlParams.get('app') === '1';
+    // DETECTA SE O ACESSO É FEITO DE DENTRO DO APLICATIVO (WEBVIEW)
+    function isInsideFabapp() {
+      const ua = navigator.userAgent || window.opera;
+      
+      // Detecção de WebView Android
+      const isAndroidWebView = /wv|Android.*Version\/[0-9]/i.test(ua);
+      
+      // Detecção de WebView iOS (iPhone/iPad)
+      const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua);
+      
+      // Se for um navegador comum do sistema (Chrome/Safari fora do app)
+      const isStandardSafari = /Safari/i.test(ua) && !/wv/i.test(ua) && !isIOSWebView;
+
+      return (isAndroidWebView || isIOSWebView) && !isStandardSafari;
     }
 
     function checkAccess() {
-      // 1. Se o usuário já autenticou nesta sessão, libera
+      // 1. Se o usuário já autenticou nesta sessão
       if (sessionStorage.getItem('app_unlocked') === 'true') {
         showContent();
         return;
       }
 
-      // 2. Se a URL possui ?app=true (link usado dentro da Fabapp) -> Abre direto
-      // 3. Se NÃO tem ?app=true (abriu no Chrome, Safari, PC ou clicou em 'Abrir no navegador') -> Pede senha
-      if (isInsideApp()) {
+      // 2. Se estiver dentro da WebView do App -> Libera direto
+      // 3. Se for navegador externo (Chrome, Safari, PC) -> Exige a senha
+      if (isInsideFabapp()) {
         showContent();
       } else {
         document.getElementById('lockScreen').style.display = 'flex';
