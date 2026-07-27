@@ -158,7 +158,7 @@
     <div class="lock-card">
       <div class="lock-icon">🔒</div>
       <h2 class="lock-title">Acesso Exclusivo</h2>
-      <p class="lock-subtitle">Digite a senha para acessar suas tarefas no navegador</p>
+      <p class="lock-subtitle">Digite a senha para acessar suas tarefas</p>
       
       <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" inputmode="numeric">
       <button class="unlock-btn" onclick="validatePIN()">ENTRAR</button>
@@ -225,38 +225,40 @@
     const SENHA_CORRETA = "2026"; 
     const LARGURA_MAXIMA_CELULAR = 600;
 
-    // DETECTA SE O NAVEGADOR ESTÁ DENTRO DO APP OU FORA
-    function isInsideApp() {
+    // DETECTA SE ESTÁ EXCLUSIVAMENTE NA TELA DE CUSTOM TAB (COM A BARRA VERMELHA E O 'X')
+    function isChromeCustomTab() {
       const ua = navigator.userAgent || navigator.vendor || window.opera;
 
-      // 1. Se a tela for de Desktop/PC (>600px), bloqueia
+      // Se for Desktop/PC (>600px de largura), não é Custom Tab de celular
       const larguraAtual = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       if (larguraAtual > LARGURA_MAXIMA_CELULAR) {
         return false;
       }
 
-      // 2. Verifica WebView do Android (usado no Fabapp)
-      const isAndroidWebView = /Android/i.test(ua) && (/wv/i.test(ua) || /Version\/[\d\.]+/i.test(ua));
+      const isAndroid = /Android/i.test(ua);
+      const hasChrome = /Chrome\/[\d\.]+/i.test(ua);
+      const hasVersion = /Version\/[\d\.]+/i.test(ua) || /wv/i.test(ua);
 
-      // 3. Verifica WebView do iOS/iPhone (usado no Fabapp)
-      const isIosWebView = /(iPhone|iPod|iPad)/i.test(ua) && !(/Safari/i.test(ua) && !/CriOS/i.test(ua));
+      // Calcula o espaço que a barra do topo (vermelha) consome
+      const alturaTela = window.screen.height;
+      const alturaUtil = window.innerHeight;
+      const temEspacoDaBarra = (alturaUtil / alturaTela) < 0.90;
 
-      // 4. Modos nativos/standalone
-      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-      return isAndroidWebView || isIosWebView || isStandalone;
+      // Retorna VERDADEIRO apenas se identificar a presença da barra Custom Tab
+      return isAndroid && hasChrome && (hasVersion || temEspacoDaBarra);
     }
 
     function checkAccess() {
-      // Se a pessoa já digitou a senha correta nesta sessão, libera
+      // Se já desbloqueou com a senha na sessão atual, libera o acesso
       if (sessionStorage.getItem('app_unlocked') === 'true') {
         showContent();
         return;
       }
 
-      // Se estiver rodando DENTRO do aplicativo -> Abre direto
-      // Se estiver no Chrome/Safari do celular OU no PC -> Pede senha
-      if (isInsideApp()) {
+      // REGRA:
+      // Se ESTIVER no Custom Tab (com a barra vermelha) -> LIBERA O CONTEÚDO DIRETO
+      // Se NÃO ESTIVER (qualquer outro navegador, PC, etc) -> BLOQUEIA E EXIGE SENHA
+      if (isChromeCustomTab()) {
         showContent();
       } else {
         document.getElementById('lockScreen').style.display = 'flex';
@@ -283,11 +285,11 @@
       renderTasks();
     }
 
-    // Executa ao carregar e ao alterar o tamanho da tela
+    // Eventos para monitorar o carregamento e redimensionamento da tela
     window.addEventListener('resize', checkAccess);
     window.addEventListener('DOMContentLoaded', checkAccess);
 
-    // Enter para validar o PIN
+    // Suporte ao Enter no input da senha
     document.getElementById('pinInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') validatePIN();
     });
