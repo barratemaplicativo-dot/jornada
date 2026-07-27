@@ -1,21 +1,9 @@
-tml>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Minha Semana - Exclusivo</title>
-
-  <script>
-    // Proteções básicas de código-fonte
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.onkeydown = function(e) {
-      if (e.keyCode == 123 || 
-         (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) ||
-         (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-        return false;
-      }
-    }
-  </script>
 
   <style>
     * {
@@ -35,332 +23,259 @@ tml>
       min-height: 100vh;
     }
 
-    .header {
-      margin-bottom: 16px;
+    /* TELA DE AUTENTICAÇÃO / SENHA (Inicia Oculta) */
+    #lockScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #0d1410;
+      z-index: 9999;
+      display: none; /* Só exibido se a tela for grande */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
     }
 
-    .header-tag {
-      font-size: 10px;
-      color: #20e070;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: bold;
-      margin-bottom: 4px;
+    .lock-card {
+      background: #121d15;
+      border: 1px solid #1d3123;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 320px;
     }
 
-    .header h1 {
-      font-size: 22px;
+    .lock-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .lock-title {
+      font-size: 18px;
       color: #ffffff;
       margin-bottom: 6px;
     }
 
-    .header p {
+    .lock-subtitle {
       font-size: 12px;
       color: #8fa394;
-      line-height: 1.4;
+      margin-bottom: 20px;
     }
 
-    .tags-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 12px;
-      margin-bottom: 12px;
+    .pin-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #1f3626;
+      background: #0d1410;
+      color: #20e070;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 6px;
+      outline: none;
+      margin-bottom: 16px;
     }
 
-    .tags-scroll::-webkit-scrollbar {
+    .pin-input:focus {
+      border-color: #20e070;
+    }
+
+    .unlock-btn {
+      width: 100%;
+      padding: 12px;
+      background: #20e070;
+      color: #0d1410;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .error-msg {
+      color: #ff5555;
+      font-size: 11px;
+      margin-top: 8px;
       display: none;
     }
 
-    .tag-pill {
-      background: #142118;
-      border: 1px solid #1e3325;
-      color: #a0b8a6;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      white-space: nowrap;
-    }
-
-    .card {
-      background: #121d15;
-      border: 1px solid #1d3123;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .progress-box {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .circle-progress {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: conic-gradient(#20e070 0deg, #1d3123 0deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .circle-inner {
-      width: 44px;
-      height: 44px;
-      background: #121d15;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: bold;
-      color: #20e070;
-    }
-
-    .progress-info h3 {
-      font-size: 11px;
-      color: #8fa394;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .progress-info p {
-      font-size: 13px;
-      color: #e0e6e1;
-      margin-top: 2px;
-    }
-
-    .days-nav {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      margin-bottom: 16px;
-    }
-
-    .day-btn {
-      background: #121d15;
-      border: 1px solid #1d3123;
-      color: #8fa394;
-      border-radius: 8px;
-      padding: 8px 2px;
-      text-align: center;
-      font-size: 10px;
-      cursor: pointer;
-    }
-
-    .day-btn.active {
-      background: #1c3d28;
-      border-color: #20e070;
-      color: #20e070;
-      font-weight: bold;
-    }
-
-    .section-title {
-      font-size: 14px;
-      color: #ffffff;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .badge-count {
-      font-size: 10px;
-      background: #1d3123;
-      color: #20e070;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-
-    .task-group-label {
-      font-size: 10px;
-      color: #20e070;
-      text-transform: uppercase;
-      margin: 12px 0 6px 0;
-      letter-spacing: 0.5px;
-    }
-
-    .task-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background: #16241a;
-      border: 1px solid #1f3626;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 8px;
-      cursor: pointer;
-    }
-
-    .task-item.completed {
-      opacity: 0.5;
-    }
-
-    .task-checkbox {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      border: 1px solid #32543d;
-      background: #0d1410;
-      margin-top: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .task-item.completed .task-checkbox {
-      background: #20e070;
-      border-color: #20e070;
-    }
-
-    .task-item.completed .task-checkbox::after {
-      content: '✓';
-      color: #0d1410;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .task-details {
-      flex: 1;
-    }
-
-    .task-time {
-      font-size: 10px;
-      color: #8fa394;
-    }
-
-    .task-title {
-      font-size: 13px;
-      color: #ffffff;
-      font-weight: bold;
-      margin: 2px 0 4px 0;
-    }
-
-    .task-item.completed .task-title {
-      text-decoration: line-through;
-    }
-
-    .task-category {
-      display: inline-block;
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: #203b29;
-      color: #8fe8b2;
-    }
-
-    .input-label {
-      font-size: 10px;
-      color: #20e070;
-      text-transform: uppercase;
-      margin-bottom: 6px;
+    /* CONTEÚDO PRINCIPAL */
+    #appContent {
       display: block;
     }
 
-    textarea {
-      width: 100%;
-      height: 60px;
-      background: #0d1410;
-      border: 1px solid #1f3626;
-      border-radius: 8px;
-      padding: 8px;
-      color: #e0e6e1;
-      font-size: 12px;
-      resize: none;
-      outline: none;
-      margin-bottom: 12px;
-      user-select: text;
-    }
+    .header { margin-bottom: 16px; }
+    .header-tag { font-size: 10px; color: #20e070; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px; }
+    .header h1 { font-size: 22px; color: #ffffff; margin-bottom: 6px; }
+    .header p { font-size: 12px; color: #8fa394; line-height: 1.4; }
 
-    textarea:focus {
-      border-color: #20e070;
-    }
+    .tags-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; }
+    .tags-scroll::-webkit-scrollbar { display: none; }
+    .tag-pill { background: #142118; border: 1px solid #1e3325; color: #a0b8a6; padding: 6px 12px; border-radius: 20px; font-size: 11px; white-space: nowrap; }
 
-    .reset-btn {
-      width: 100%;
-      padding: 12px;
-      background: transparent;
-      border: 1px solid #233d2c;
-      color: #8fa394;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-      margin-top: 8px;
-    }
+    .card { background: #121d15; border: 1px solid #1d3123; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .progress-box { display: flex; align-items: center; gap: 16px; }
+    .circle-progress { width: 54px; height: 54px; border-radius: 50%; background: conic-gradient(#20e070 0deg, #1d3123 0deg); display: flex; align-items: center; justify-content: center; position: relative; }
+    .circle-inner { width: 44px; height: 44px; background: #121d15; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #20e070; }
+    .progress-info h3 { font-size: 11px; color: #8fa394; text-transform: uppercase; letter-spacing: 0.5px; }
+    .progress-info p { font-size: 13px; color: #e0e6e1; margin-top: 2px; }
 
-    .reset-btn:active {
-      background: #142118;
-    }
+    .days-nav { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
+    .day-btn { background: #121d15; border: 1px solid #1d3123; color: #8fa394; border-radius: 8px; padding: 8px 2px; text-align: center; font-size: 10px; cursor: pointer; }
+    .day-btn.active { background: #1c3d28; border-color: #20e070; color: #20e070; font-weight: bold; }
+
+    .section-title { font-size: 14px; color: #ffffff; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .badge-count { font-size: 10px; background: #1d3123; color: #20e070; padding: 2px 8px; border-radius: 10px; }
+    .task-group-label { font-size: 10px; color: #20e070; text-transform: uppercase; margin: 12px 0 6px 0; letter-spacing: 0.5px; }
+
+    .task-item { display: flex; align-items: flex-start; gap: 10px; background: #16241a; border: 1px solid #1f3626; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
+    .task-item.completed { opacity: 0.5; }
+    .task-checkbox { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #32543d; background: #0d1410; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+    .task-item.completed .task-checkbox { background: #20e070; border-color: #20e070; }
+    .task-item.completed .task-checkbox::after { content: '✓'; color: #0d1410; font-size: 12px; font-weight: bold; }
+
+    .task-details { flex: 1; }
+    .task-time { font-size: 10px; color: #8fa394; }
+    .task-title { font-size: 13px; color: #ffffff; font-weight: bold; margin: 2px 0 4px 0; }
+    .task-item.completed .task-title { text-decoration: line-through; }
+    .task-category { display: inline-block; font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #203b29; color: #8fe8b2; }
+
+    .input-label { font-size: 10px; color: #20e070; text-transform: uppercase; margin-bottom: 6px; display: block; }
+    textarea { width: 100%; height: 60px; background: #0d1410; border: 1px solid #1f3626; border-radius: 8px; padding: 8px; color: #e0e6e1; font-size: 12px; resize: none; outline: none; margin-bottom: 12px; user-select: text; }
+    textarea:focus { border-color: #20e070; }
+
+    .reset-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #233d2c; color: #8fa394; border-radius: 8px; font-size: 12px; cursor: pointer; text-align: center; margin-top: 8px; }
   </style>
 </head>
 <body>
 
-  <!-- Cabeçalho -->
-  <div class="header">
-    <div class="header-tag">● Sistema de Rotina</div>
-    <h1>Minha semana</h1>
-    <p>Deslize entre os dias ou toque em um deles. Marque as tarefas conforme forem concluídas.</p>
-  </div>
-
-  <!-- Categorias/Tags -->
-  <div class="tags-scroll">
-    <div class="tag-pill">Geral</div>
-    <div class="tag-pill">Rotina / Descanso</div>
-    <div class="tag-pill">Palavra / Louvor</div>
-    <div class="tag-pill">Diferença</div>
-    <div class="tag-pill">Liderança</div>
-  </div>
-
-  <!-- Progresso Hoje -->
-  <div class="card">
-    <div class="progress-box">
-      <div class="circle-progress" id="circleProgress">
-        <div class="circle-inner" id="percentText">0%</div>
-      </div>
-      <div class="progress-info">
-        <h3>Hoje · <span id="currentDayName">DOMINGO</span></h3>
-        <p><strong id="completedCount">0</strong> de <span id="totalCount">11</span> concluídas</p>
-      </div>
+  <!-- TELA DE SENHA -->
+  <div id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h2 class="lock-title">Acesso Exclusivo</h2>
+      <p class="lock-subtitle">Digite a senha para acessar suas tarefas</p>
+      
+      <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" inputmode="numeric">
+      <button class="unlock-btn" onclick="validatePIN()">ENTRAR</button>
+      <div id="errorMsg" class="error-msg">Senha incorreta. Tente novamente.</div>
     </div>
   </div>
 
-  <!-- Navegação da Semana -->
-  <div class="days-nav">
-    <div class="day-btn" onclick="selectDay(0)">SEG<br>17/2</div>
-    <div class="day-btn" onclick="selectDay(1)">TER<br>18/2</div>
-    <div class="day-btn" onclick="selectDay(2)">QUA<br>19/2</div>
-    <div class="day-btn" onclick="selectDay(3)">QUI<br>20/2</div>
-    <div class="day-btn" onclick="selectDay(4)">SEX<br>21/2</div>
-    <div class="day-btn" onclick="selectDay(5)">SÁB<br>22/2</div>
-    <div class="day-btn active" onclick="selectDay(6)">DOM<br>23/2</div>
-  </div>
-
-  <!-- Seção das Tarefas -->
-  <div class="card">
-    <div class="section-title">
-      <span id="selectedDayTitle">Domingo</span>
-      <span class="badge-count" id="badgeCount">0/11</span>
+  <!-- CONTEÚDO DA PÁGINA -->
+  <div id="appContent">
+    <div class="header">
+      <div class="header-tag">● Sistema de Rotina</div>
+      <h1>Minha semana</h1>
+      <p>Deslize entre os dias ou toque em um deles. Marque as tarefas conforme forem concluídas.</p>
     </div>
 
-    <!-- Lista Dinâmica de Tarefas -->
-    <div id="taskList"></div>
+    <div class="tags-scroll">
+      <div class="tag-pill">Geral</div>
+      <div class="tag-pill">Rotina / Descanso</div>
+      <div class="tag-pill">Palavra / Louvor</div>
+      <div class="tag-pill">Diferença</div>
+      <div class="tag-pill">Liderança</div>
+    </div>
 
-    <!-- Áreas de Anotação -->
-    <span class="input-label" style="margin-top: 16px;">O QUE VEJO/APRENDI HOJE?</span>
-    <textarea id="notesInput" placeholder="Escreva aqui livremente o que viveu no dia..."></textarea>
+    <div class="card">
+      <div class="progress-box">
+        <div class="circle-progress" id="circleProgress">
+          <div class="circle-inner" id="percentText">0%</div>
+        </div>
+        <div class="progress-info">
+          <h3>Hoje · <span id="currentDayName">DOMINGO</span></h3>
+          <p><strong id="completedCount">0</strong> de <span id="totalCount">11</span> concluídas</p>
+        </div>
+      </div>
+    </div>
 
-    <span class="input-label">QUAL SERÁ A PRIORIDADE?</span>
-    <textarea id="priorityInput" placeholder="Qual é a prioridade de amanhã?"></textarea>
+    <div class="days-nav">
+      <div class="day-btn" onclick="selectDay(0)">SEG<br>17/2</div>
+      <div class="day-btn" onclick="selectDay(1)">TER<br>18/2</div>
+      <div class="day-btn" onclick="selectDay(2)">QUA<br>19/2</div>
+      <div class="day-btn" onclick="selectDay(3)">QUI<br>20/2</div>
+      <div class="day-btn" onclick="selectDay(4)">SEX<br>21/2</div>
+      <div class="day-btn" onclick="selectDay(5)">SÁB<br>22/2</div>
+      <div class="day-btn active" onclick="selectDay(6)">DOM<br>23/2</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <span id="selectedDayTitle">Domingo</span>
+        <span class="badge-count" id="badgeCount">0/11</span>
+      </div>
+      <div id="taskList"></div>
+
+      <span class="input-label" style="margin-top: 16px;">O QUE VEJO/APRENDI HOJE?</span>
+      <textarea id="notesInput" placeholder="Escreva aqui livremente o que viveu no dia..."></textarea>
+
+      <span class="input-label">QUAL SERÁ A PRIORIDADE?</span>
+      <textarea id="priorityInput" placeholder="Qual é a prioridade de amanhã?"></textarea>
+    </div>
+
+    <button class="reset-btn" onclick="resetWeek()">⟳ Limpar marcações da semana</button>
   </div>
-
-  <!-- Botão Limpar -->
-  <button class="reset-btn" onclick="resetWeek()">⟳ Limpar marcações da semana</button>
 
   <script>
+    const SENHA_CORRETA = "2026"; 
+    const LARGURA_MAXIMA_CELULAR = 600; // Define o limite em pixels de uma tela de celular
+
+    // VERIFICA O TAMANHO DA TELA AUTOMATICAMENTE
+    function checkScreenSize() {
+      // Se a pessoa já digitou a senha anteriormente no navegador grande, deixa liberado
+      if (sessionStorage.getItem('app_unlocked') === 'true') {
+        showContent();
+        return;
+      }
+
+      const larguraAtual = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+
+      if (larguraAtual > LARGURA_MAXIMA_CELULAR) {
+        // TELA GRANDE / NAVEGADOR DE DESKTOP: BLOQUEIA E PEDE SENHA
+        document.getElementById('lockScreen').style.display = 'flex';
+        document.getElementById('appContent').style.display = 'none';
+      } else {
+        // TELA DE CELULAR / MOCKUP DO FABAPP: LIBERA DIRETO
+        showContent();
+      }
+    }
+
+    function validatePIN() {
+      const input = document.getElementById('pinInput').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (input === SENHA_CORRETA) {
+        sessionStorage.setItem('app_unlocked', 'true');
+        showContent();
+      } else {
+        errorMsg.style.display = 'block';
+        document.getElementById('pinInput').value = '';
+      }
+    }
+
+    function showContent() {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+      renderTasks();
+    }
+
+    // Monitora o redimensionamento da janela em tempo real (se a pessoa arrastar/aumentar a tela)
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Executa a checagem ao carregar a página
+    window.addEventListener('DOMContentLoaded', checkScreenSize);
+
+    // Suporte ao ENTER no input
+    document.getElementById('pinInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') validatePIN();
+    });
+
+    // LÓGICA DAS TAREFAS
     const sundayTasks = [
       { group: "MANHÃ", time: "09:00", title: "Acordar", category: "Rotina / Descanso" },
       { group: "MANHÃ", time: "09:00 - 10:00", title: "Falando da Palavra (leitura mais longa) + oração", category: "Palavra de Palavra" },
@@ -379,6 +294,7 @@ tml>
 
     function renderTasks() {
       const container = document.getElementById('taskList');
+      if (!container) return;
       container.innerHTML = '';
 
       let currentGroup = '';
@@ -445,5 +361,6 @@ tml>
         renderTasks();
       }
     }
-
-    renderTasks();
+  </script>
+</body>
+</html>
