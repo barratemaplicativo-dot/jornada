@@ -32,7 +32,7 @@
       height: 100vh;
       background-color: #0d1410;
       z-index: 99999;
-      display: flex; /* Bloqueado de início */
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -88,7 +88,7 @@
       display: none;
     }
 
-    /* CONTEÚDO PRINCIPAL (COMEÇA ESCONDIDO POR SEGURANÇA) */
+    /* CONTEÚDO PRINCIPAL */
     #appContent {
       display: none;
     }
@@ -210,33 +210,40 @@
     const SENHA_CORRETA = "2026"; 
 
     function forceLock() {
-      // Apaga qualquer permissão ativa
-      sessionStorage.removeItem('app_unlocked');
+      localStorage.removeItem('app_unlocked_token');
       document.getElementById('lockScreen').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
     }
 
     function checkAccess() {
-      // 1. Se já autenticou via PIN nesta sessão, libera
-      if (sessionStorage.getItem('app_unlocked') === 'true') {
+      // 1. Se autenticou manualmente com a senha, mantém liberado nesta sessão/atualização
+      if (localStorage.getItem('app_unlocked_token') === 'true') {
         showContent();
         return;
       }
 
-      // 2. Trava de Tela Grande / PC: Bloqueia imediatamente
+      // 2. Trava para telas grandes/PC
       if (window.innerWidth > 600) {
         forceLock();
         return;
       }
 
-      // 3. Trava de Navegador Comum (Safari puro / Chrome puro)
       const ua = navigator.userAgent || window.opera;
-      const isPureBrowser = (/Safari/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua)) || /CriOS/i.test(ua);
 
-      if (isPureBrowser) {
+      // 3. IDENTIFICAÇÃO DE NAVEGADOR COMUM (Android e iOS)
+      
+      // Android: Chrome/Browser comum fora do app WebView
+      const isAndroidPureBrowser = /Chrome\/[0-9]/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua);
+      
+      // iOS: Safari puro fora de WebView (WKWebView no app não traz a flag pura de Safari standalone)
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isIOSPureSafari = isIOS && /Safari/i.test(ua) && !/FBAN|FBAV|Instagram|wv/i.test(ua) && !('standalone' in window.navigator && window.navigator.standalone);
+
+      // Se for Android Chrome limpo OU iPhone Safari limpo, exige a senha imediatamente!
+      if (isAndroidPureBrowser || isIOSPureSafari) {
         forceLock();
       } else {
-        // Se estiver dentro da WebView do App, libera
+        // Se estiver dentro da tela do App (WebView), entra sem pedir senha
         showContent();
       }
     }
@@ -246,7 +253,7 @@
       const errorMsg = document.getElementById('errorMsg');
 
       if (input === SENHA_CORRETA) {
-        sessionStorage.setItem('app_unlocked', 'true');
+        localStorage.setItem('app_unlocked_token', 'true');
         showContent();
       } else {
         errorMsg.style.display = 'block';
@@ -260,22 +267,16 @@
       renderTasks();
     }
 
-    // TRAVAMENTO NA MUDANÇA (Sempre que piscar/mudar de janela/abrir navegador)
-    window.addEventListener('blur', function() {
-      // Se o usuário clicar no botão "Abrir no navegador" ou sair do app, destrói o acesso
-      if (sessionStorage.getItem('app_unlocked') !== 'true') {
-        forceLock();
+    // TRAVA AO TROCAR DE JANELA / "ABRIR NO NAVEGADOR"
+    // Tanto no Android (visibilitychange) quanto no iOS (pagehide/visibilitychange)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        localStorage.removeItem('app_unlocked_token');
       }
     });
 
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
-        if (sessionStorage.getItem('app_unlocked') !== 'true') {
-          forceLock();
-        }
-      } else {
-        checkAccess();
-      }
+    window.addEventListener('pagehide', function() {
+      localStorage.removeItem('app_unlocked_token');
     });
 
     window.addEventListener('DOMContentLoaded', checkAccess);
