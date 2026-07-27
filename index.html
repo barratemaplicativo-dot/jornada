@@ -23,7 +23,7 @@
       min-height: 100vh;
     }
 
-    /* TELA DE AUTENTICAÇÃO / SENHA (Inicia Oculta) */
+    /* TELA DE AUTENTICAÇÃO / SENHA */
     #lockScreen {
       position: fixed;
       top: 0;
@@ -32,7 +32,7 @@
       height: 100vh;
       background-color: #0d1410;
       z-index: 9999;
-      display: none; /* Só exibido se a tela for grande */
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -158,7 +158,7 @@
     <div class="lock-card">
       <div class="lock-icon">🔒</div>
       <h2 class="lock-title">Acesso Exclusivo</h2>
-      <p class="lock-subtitle">Digite a senha para acessar suas tarefas</p>
+      <p class="lock-subtitle">Digite a senha para acessar suas tarefas no navegador</p>
       
       <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" inputmode="numeric">
       <button class="unlock-btn" onclick="validatePIN()">ENTRAR</button>
@@ -223,25 +223,44 @@
 
   <script>
     const SENHA_CORRETA = "2026"; 
-    const LARGURA_MAXIMA_CELULAR = 600; // Define o limite em pixels de uma tela de celular
+    const LARGURA_MAXIMA_CELULAR = 600;
 
-    // VERIFICA O TAMANHO DA TELA AUTOMATICAMENTE
-    function checkScreenSize() {
-      // Se a pessoa já digitou a senha anteriormente no navegador grande, deixa liberado
+    // DETECTA SE O NAVEGADOR ESTÁ DENTRO DO APP OU FORA
+    function isInsideApp() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+      // 1. Se a tela for de Desktop/PC (>600px), bloqueia
+      const larguraAtual = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+      if (larguraAtual > LARGURA_MAXIMA_CELULAR) {
+        return false;
+      }
+
+      // 2. Verifica WebView do Android (usado no Fabapp)
+      const isAndroidWebView = /Android/i.test(ua) && (/wv/i.test(ua) || /Version\/[\d\.]+/i.test(ua));
+
+      // 3. Verifica WebView do iOS/iPhone (usado no Fabapp)
+      const isIosWebView = /(iPhone|iPod|iPad)/i.test(ua) && !(/Safari/i.test(ua) && !/CriOS/i.test(ua));
+
+      // 4. Modos nativos/standalone
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+      return isAndroidWebView || isIosWebView || isStandalone;
+    }
+
+    function checkAccess() {
+      // Se a pessoa já digitou a senha correta nesta sessão, libera
       if (sessionStorage.getItem('app_unlocked') === 'true') {
         showContent();
         return;
       }
 
-      const larguraAtual = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-
-      if (larguraAtual > LARGURA_MAXIMA_CELULAR) {
-        // TELA GRANDE / NAVEGADOR DE DESKTOP: BLOQUEIA E PEDE SENHA
+      // Se estiver rodando DENTRO do aplicativo -> Abre direto
+      // Se estiver no Chrome/Safari do celular OU no PC -> Pede senha
+      if (isInsideApp()) {
+        showContent();
+      } else {
         document.getElementById('lockScreen').style.display = 'flex';
         document.getElementById('appContent').style.display = 'none';
-      } else {
-        // TELA DE CELULAR / MOCKUP DO FABAPP: LIBERA DIRETO
-        showContent();
       }
     }
 
@@ -264,13 +283,11 @@
       renderTasks();
     }
 
-    // Monitora o redimensionamento da janela em tempo real (se a pessoa arrastar/aumentar a tela)
-    window.addEventListener('resize', checkScreenSize);
-    
-    // Executa a checagem ao carregar a página
-    window.addEventListener('DOMContentLoaded', checkScreenSize);
+    // Executa ao carregar e ao alterar o tamanho da tela
+    window.addEventListener('resize', checkAccess);
+    window.addEventListener('DOMContentLoaded', checkAccess);
 
-    // Suporte ao ENTER no input
+    // Enter para validar o PIN
     document.getElementById('pinInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') validatePIN();
     });
