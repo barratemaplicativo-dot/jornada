@@ -23,7 +23,7 @@
       min-height: 100vh;
     }
 
-    /* TELA DE AUTENTICAÇÃO / SENHA (COMEÇA VISÍVEL POR PADRÃO) */
+    /* TELA DE BLOQUEIO DE NAVEGADOR (SEM SENHA) */
     #lockScreen {
       position: fixed;
       top: 0;
@@ -32,7 +32,7 @@
       height: 100vh;
       background-color: #0d1410;
       z-index: 99999;
-      display: flex;
+      display: flex; /* Exibido por padrão */
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -44,51 +44,42 @@
       background: #121d15;
       border: 1px solid #1d3123;
       border-radius: 16px;
-      padding: 24px;
+      padding: 28px 24px;
       width: 100%;
       max-width: 320px;
     }
 
-    .lock-icon { font-size: 40px; margin-bottom: 12px; }
-    .lock-title { font-size: 18px; color: #ffffff; margin-bottom: 6px; }
-    .lock-subtitle { font-size: 12px; color: #8fa394; margin-bottom: 20px; }
-
-    .pin-input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #1f3626;
-      background: #0d1410;
-      color: #20e070;
-      font-size: 20px;
-      text-align: center;
-      letter-spacing: 6px;
-      outline: none;
-      margin-bottom: 16px;
+    .lock-icon { 
+      font-size: 48px; 
+      margin-bottom: 12px; 
     }
 
-    .pin-input:focus { border-color: #20e070; }
-
-    .unlock-btn {
-      width: 100%;
-      padding: 12px;
-      background: #20e070;
-      color: #0d1410;
-      border: none;
-      border-radius: 8px;
+    .lock-title { 
+      font-size: 18px; 
+      color: #ffffff; 
+      margin-bottom: 8px; 
       font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
     }
 
-    .error-msg {
-      color: #ff5555;
+    .lock-subtitle { 
+      font-size: 13px; 
+      color: #8fa394; 
+      line-height: 1.5; 
+    }
+
+    .lock-badge {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 6px 12px;
+      background: #1a2e21;
+      border: 1px solid #284733;
+      color: #20e070;
+      border-radius: 20px;
       font-size: 11px;
-      margin-top: 8px;
-      display: none;
+      font-weight: 600;
     }
 
-    /* CONTEÚDO PRINCIPAL */
+    /* CONTEÚDO PRINCIPAL (ESCONDIDO ATÉ VALIDAR APP) */
     #appContent {
       display: none;
     }
@@ -138,16 +129,13 @@
 </head>
 <body>
 
-  <!-- TELA DE SENHA -->
+  <!-- TELA DE BLOQUEIO DE NAVEGADOR (SEM CAMPO DE SENHA) -->
   <div id="lockScreen">
     <div class="lock-card">
-      <div class="lock-icon">🔒</div>
-      <h2 class="lock-title">Acesso Exclusivo</h2>
-      <p class="lock-subtitle">Digite a senha para acessar no navegador</p>
-      
-      <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" inputmode="numeric">
-      <button class="unlock-btn" onclick="validatePIN()">ENTRAR</button>
-      <div id="errorMsg" class="error-msg">Senha incorreta. Tente novamente.</div>
+      <div class="lock-icon">🚫</div>
+      <h2 class="lock-title">Acesso Indisponível</h2>
+      <p class="lock-subtitle">Esta página só pode ser acessada diretamente de dentro do aplicativo oficial.</p>
+      <div class="lock-badge">Abertura externa bloqueada</div>
     </div>
   </div>
 
@@ -207,58 +195,9 @@
   </div>
 
   <script>
-    const SENHA_CORRETA = "2026"; 
-
     function forceLock() {
-      localStorage.removeItem('app_unlocked_token');
       document.getElementById('lockScreen').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
-    }
-
-    function checkAccess() {
-      // 1. Se autenticou manualmente com a senha, mantém liberado nesta sessão/atualização
-      if (localStorage.getItem('app_unlocked_token') === 'true') {
-        showContent();
-        return;
-      }
-
-      // 2. Trava para telas grandes/PC
-      if (window.innerWidth > 600) {
-        forceLock();
-        return;
-      }
-
-      const ua = navigator.userAgent || window.opera;
-
-      // 3. IDENTIFICAÇÃO DE NAVEGADOR COMUM (Android e iOS)
-      
-      // Android: Chrome/Browser comum fora do app WebView
-      const isAndroidPureBrowser = /Chrome\/[0-9]/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua);
-      
-      // iOS: Safari puro fora de WebView (WKWebView no app não traz a flag pura de Safari standalone)
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
-      const isIOSPureSafari = isIOS && /Safari/i.test(ua) && !/FBAN|FBAV|Instagram|wv/i.test(ua) && !('standalone' in window.navigator && window.navigator.standalone);
-
-      // Se for Android Chrome limpo OU iPhone Safari limpo, exige a senha imediatamente!
-      if (isAndroidPureBrowser || isIOSPureSafari) {
-        forceLock();
-      } else {
-        // Se estiver dentro da tela do App (WebView), entra sem pedir senha
-        showContent();
-      }
-    }
-
-    function validatePIN() {
-      const input = document.getElementById('pinInput').value;
-      const errorMsg = document.getElementById('errorMsg');
-
-      if (input === SENHA_CORRETA) {
-        localStorage.setItem('app_unlocked_token', 'true');
-        showContent();
-      } else {
-        errorMsg.style.display = 'block';
-        document.getElementById('pinInput').value = '';
-      }
     }
 
     function showContent() {
@@ -267,23 +206,32 @@
       renderTasks();
     }
 
-    // TRAVA AO TROCAR DE JANELA / "ABRIR NO NAVEGADOR"
-    // Tanto no Android (visibilitychange) quanto no iOS (pagehide/visibilitychange)
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
-        localStorage.removeItem('app_unlocked_token');
+    function checkAccess() {
+      // 1. Bloqueia imediatamente PC / Telas Grandes
+      if (window.innerWidth > 600) {
+        forceLock();
+        return;
       }
-    });
 
-    window.addEventListener('pagehide', function() {
-      localStorage.removeItem('app_unlocked_token');
-    });
+      const ua = navigator.userAgent || window.opera;
 
+      // 2. Identificação de Navegador Comum (Navegador Aberto por fora)
+      const isAndroidPureBrowser = /Chrome\/[0-9]/i.test(ua) && !/wv/i.test(ua) && !/Version\//i.test(ua);
+      
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isIOSPureSafari = isIOS && /Safari/i.test(ua) && !/FBAN|FBAV|Instagram|wv/i.test(ua) && !('standalone' in window.navigator && window.navigator.standalone);
+
+      // Se for navegador nativo (Chrome Android ou Safari iOS), Bloqueia sem dar opção de senha!
+      if (isAndroidPureBrowser || isIOSPureSafari) {
+        forceLock();
+      } else {
+        // Se estiver dentro da WebView (no App), libera o conteúdo
+        showContent();
+      }
+    }
+
+    // Executa a verificação assim que o DOM carrega
     window.addEventListener('DOMContentLoaded', checkAccess);
-
-    document.getElementById('pinInput').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') validatePIN();
-    });
 
     // LÓGICA DAS TAREFAS
     const sundayTasks = [
