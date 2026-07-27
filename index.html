@@ -223,42 +223,23 @@
 
   <script>
     const SENHA_CORRETA = "2026"; 
-    const LARGURA_MAXIMA_CELULAR = 600;
 
-    // DETECTA SE ESTÁ EXCLUSIVAMENTE NA TELA DE CUSTOM TAB (COM A BARRA VERMELHA E O 'X')
-    function isChromeCustomTab() {
-      const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-      // Se for Desktop/PC (>600px de largura), não é Custom Tab de celular
-      const larguraAtual = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-      if (larguraAtual > LARGURA_MAXIMA_CELULAR) {
-        return false;
-      }
-
-      const isAndroid = /Android/i.test(ua);
-      const hasChrome = /Chrome\/[\d\.]+/i.test(ua);
-      const hasVersion = /Version\/[\d\.]+/i.test(ua) || /wv/i.test(ua);
-
-      // Calcula o espaço que a barra do topo (vermelha) consome
-      const alturaTela = window.screen.height;
-      const alturaUtil = window.innerHeight;
-      const temEspacoDaBarra = (alturaUtil / alturaTela) < 0.90;
-
-      // Retorna VERDADEIRO apenas se identificar a presença da barra Custom Tab
-      return isAndroid && hasChrome && (hasVersion || temEspacoDaBarra);
+    // VERIFICA SE O LINK TEM O PARÂMETRO DA FABAPP (?app=true)
+    function isInsideApp() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('app') === 'true' || urlParams.get('app') === '1';
     }
 
     function checkAccess() {
-      // Se já desbloqueou com a senha na sessão atual, libera o acesso
+      // 1. Se o usuário já autenticou nesta sessão, libera
       if (sessionStorage.getItem('app_unlocked') === 'true') {
         showContent();
         return;
       }
 
-      // REGRA:
-      // Se ESTIVER no Custom Tab (com a barra vermelha) -> LIBERA O CONTEÚDO DIRETO
-      // Se NÃO ESTIVER (qualquer outro navegador, PC, etc) -> BLOQUEIA E EXIGE SENHA
-      if (isChromeCustomTab()) {
+      // 2. Se a URL possui ?app=true (link usado dentro da Fabapp) -> Abre direto
+      // 3. Se NÃO tem ?app=true (abriu no Chrome, Safari, PC ou clicou em 'Abrir no navegador') -> Pede senha
+      if (isInsideApp()) {
         showContent();
       } else {
         document.getElementById('lockScreen').style.display = 'flex';
@@ -285,11 +266,8 @@
       renderTasks();
     }
 
-    // Eventos para monitorar o carregamento e redimensionamento da tela
-    window.addEventListener('resize', checkAccess);
     window.addEventListener('DOMContentLoaded', checkAccess);
 
-    // Suporte ao Enter no input da senha
     document.getElementById('pinInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') validatePIN();
     });
